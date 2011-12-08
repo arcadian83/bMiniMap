@@ -2,9 +2,13 @@ package com.bpermissions.minimap;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
@@ -54,7 +58,7 @@ public class TextureUtils {
 	 * @param bufferedImage
 	 * @return ByteBuffer (from bufferedImage)
 	 */
-	public static ByteBuffer convertImageData(BufferedImage bufferedImage) {
+	public static ByteBuffer convertImageData(BufferedImage bufferedImage, int width) {
 		ByteBuffer imageBuffer;
 		WritableRaster raster;
 		BufferedImage texImage;
@@ -72,7 +76,7 @@ public class TextureUtils {
 		// copy the source image into the produced image
 		Graphics g = texImage.getGraphics();
 		g.setColor(new Color(0f, 0f, 0f, 0f));
-		g.fillRect(0, 0, MiniMap.width, MiniMap.width);
+		g.fillRect(0, 0, width, width);
 		g.drawImage(bufferedImage, 0, 0, null);
 
 		// build a byte buffer from the temporary image
@@ -99,7 +103,7 @@ public class TextureUtils {
 	 * @param buff
 	 * @return ByteBuffer (buff)
 	 */
-	public static ByteBuffer render(MiniMap miniMap, ByteBuffer buff) {
+	public static ByteBuffer render(MiniMap miniMap, ByteBuffer buff, int width) {
 		// Is the render up to date
 		if (buff == null) {
 			// First render() ?
@@ -123,7 +127,6 @@ public class TextureUtils {
 		float rot = ((float) Spoutcraft.getActivePlayer().getLocation().getYaw() + 180) % 360;
 		// Attempt to rotate?
 		
-		int width = 100+MiniMapWidget.scale*10;
 		int center = (width)/2;
 		
 		GL11.glTranslated(center, center, 0);
@@ -133,6 +136,31 @@ public class TextureUtils {
 		// ChrizC told me to
 		GL11.glBegin(GL11.GL_QUADS);
 		
+		// A, A
+		GL11.glTexCoord2d(0, 0);
+		GL11.glVertex2d(5, 5);
+		// a, A
+		GL11.glTexCoord2d(0, 1);
+		GL11.glVertex2d(5, width-5);
+		// a, a
+		GL11.glTexCoord2d(1, 1);
+		GL11.glVertex2d(width-5, width-5);
+		// A, a
+		GL11.glTexCoord2d(1, 0);
+		GL11.glVertex2d(width-5, 5);
+		
+		GL11.glEnd();
+		
+		
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, TextureUtils.getInstance("overlay")
+				.getId());
+		
+		GL11.glTranslated(center, center, 0);
+		GL11.glRotatef(rot, 0, 0, 1);
+		GL11.glTranslated(-center, -center, 0);
+		// ChrizC told me to
+		GL11.glBegin(GL11.GL_QUADS);
+
 		// A, A
 		GL11.glTexCoord2d(0, 0);
 		GL11.glVertex2d(0, 0);
@@ -157,7 +185,7 @@ public class TextureUtils {
 	 * Setup the initial Texture environment
 	 * but with a ByteBuffer
 	 */
-	public void initialUpload(ByteBuffer buff) {
+	public void initialUpload(ByteBuffer buff, int width) {
 		System.out.println("Generating texture ID");
 		IntBuffer bInt = BufferUtils.createIntBuffer(1);
 		GL11.glGenTextures(bInt);
@@ -165,8 +193,7 @@ public class TextureUtils {
 		System.out.println("ID:" + textureID + " Binding texture");
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureID);
 
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, MiniMap.width,
-				MiniMap.width, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,
+		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, width, width, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,
 				buff);
 
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER,
@@ -178,7 +205,7 @@ public class TextureUtils {
 	/**
 	 * Setup the initial Texture environment
 	 */
-	public void initialUpload() {
+	public void initialUpload(int width) {
 		System.out.println("Generating texture ID");
 		IntBuffer bInt = BufferUtils.createIntBuffer(1);
 		GL11.glGenTextures(bInt);
@@ -186,8 +213,8 @@ public class TextureUtils {
 		System.out.println("ID:" + textureID + " Binding texture");
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureID);
 
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, MiniMap.width,
-				MiniMap.width, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,
+		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, width,
+				width, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,
 				(ByteBuffer) null);
 
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER,

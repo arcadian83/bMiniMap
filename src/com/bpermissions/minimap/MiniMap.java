@@ -4,14 +4,14 @@ import java.awt.image.BufferedImage;
 
 public class MiniMap {
 
-	public static int width = 128;
+	public static int width = 256;
 	public static int radius = width / 2;
 	public static double zoom = 1;
 
 	private final MiniMapRender render;
 	private BufferedImage image;
 	private MiniMapAddon parent;
-
+	
 	/**
 	 * We initialise and reuse the BufferedImage here for the whole
 	 * shizzledizzle
@@ -24,7 +24,6 @@ public class MiniMap {
 		image = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
 		render = new MiniMapRender(this);
 		render.start();
-
 	}
 
 	/**
